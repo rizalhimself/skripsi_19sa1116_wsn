@@ -23,7 +23,7 @@ painlessMesh mesh;
 void sendMessage(); 
 void sendDataToSerial1();//prototype
 
-int nodeNumber, node1, node2, node3, sinyal, sinyal1, sinyal2, sinyal3,
+int nodeNumber, sinyal, sinyal1, sinyal2, sinyal3,
 humidity, kel1, kel2, kel3;
 float temperature, suhu1, suhu2 , suhu3;
 
@@ -39,7 +39,7 @@ void sendDataToSerial1()
   doc["suhu1"] = suhu1;
   doc["suhu2"] = suhu2;
   doc["suhu3"] = suhu3;
-  serializeJson(doc,Serial1);
+  serializeJson(doc, Serial1);
 }
 
 void receivedCallback( uint32_t from, String &msg ) {
@@ -61,7 +61,6 @@ void receivedCallback( uint32_t from, String &msg ) {
   Serial.println(humidity);
   Serial.println(sinyal);
   if (nodeNumber == 1) {
-    node1 = nodeNumber;
     suhu1 = temperature;
     kel1 = humidity;
     sinyal1 = sinyal;
@@ -81,7 +80,6 @@ void receivedCallback( uint32_t from, String &msg ) {
     screen.print(suhu1,1);
     screen.display();
   } else if (nodeNumber == 2) {
-    node2 = nodeNumber;
     suhu2 = temperature;
     kel2 = humidity;
     sinyal2 = sinyal;
@@ -101,7 +99,6 @@ void receivedCallback( uint32_t from, String &msg ) {
     screen.print(suhu2,1);
     screen.display();
   } else if (nodeNumber == 3) {
-    node3 = nodeNumber;
     suhu3 = temperature;
     kel3 = humidity;
     sinyal3 = sinyal;
@@ -122,8 +119,6 @@ void receivedCallback( uint32_t from, String &msg ) {
     screen.display();
   }
 }
-
-void sendMessage(){}
 
 void newConnDisplay()
 {
@@ -147,6 +142,18 @@ void changeConnDisplay()
   screen.display();
 }
 
+void startupDisplay()
+{
+  screen.setTextSize(1);
+  screen.setTextColor(WHITE);
+  screen.setCursor(25, 28);
+  screen.println("Loading...");
+  screen.display();
+  screen.clearDisplay();
+}
+
+void sendMessage(){}
+
 void newConnectionCallback(uint32_t nodeId) {
   Serial.printf("--> startHere: New Connection, nodeId = %u\n", nodeId);
   newConnDisplay();
@@ -155,7 +162,6 @@ void newConnectionCallback(uint32_t nodeId) {
 void changedConnectionCallback() {
   Serial.printf("Changed connections\n");
   changeConnDisplay();
-  
 }
 
 void nodeTimeAdjustedCallback(int32_t offset) {
@@ -165,25 +171,10 @@ void nodeTimeAdjustedCallback(int32_t offset) {
 void setup() {
   Serial.begin(115200);
   Serial1.begin(115200, SERIAL_8N1);
-  // initialize the OLED object
-  if (!screen.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
-  {
-    Serial.println(F("SSD1306 allocation failed"));
-    for (;;)
-      ; // Don't proceed, loop forever
-  }
-
-  // Clear the buffer.
+  screen.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS);
   screen.clearDisplay();
-
-  // Display Text
-  screen.setTextSize(1);
-  screen.setTextColor(WHITE);
-  screen.setCursor(25, 28);
-  screen.println("Loading...");
-  screen.display();
-  screen.clearDisplay();
-  mesh.setDebugMsgTypes( ERROR | STARTUP );  // set before init() so that you can see startup messages
+  startupDisplay();
+  mesh.setDebugMsgTypes( ERROR | STARTUP ); 
   mesh.init( MESH_PREFIX, MESH_PASSWORD, &userScheduler, MESH_PORT );
   mesh.onReceive(&receivedCallback);
   mesh.onNewConnection(&newConnectionCallback);
